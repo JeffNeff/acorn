@@ -54,6 +54,13 @@ jobs:
         env:
           KUBECONFIG: "/home/runner/.kube/config"
 
+      - name: uninstall acorn
+        if: always()
+        run: |
+          acorn uninstall -af
+        env:
+          KUBECONFIG: "/home/runner/.kube/config"
+
       - name: report failure to slack
         if: failure()
         id: slack
@@ -64,9 +71,13 @@ jobs:
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
-      - name: uninstall acorn
-        if: always()
-        run: |
-          acorn uninstall -af
+      - name: report success to slack
+        if: success()
+        id: slack-success
+        uses: slackapi/slack-github-action@v1.23.0
+        with:
+          channel-id: '${{ secrets.SLACK_BOT_CHANNEL_SUCCESS }}'
+          slack-message: "Nightly EKS test succeeded: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         env:
-          KUBECONFIG: "/home/runner/.kube/config"
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
